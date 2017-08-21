@@ -6,8 +6,8 @@ It uses search path instead of search tree.
 
 Three components are used to decide the next step:
 (1)	Move_Selector 	: Select possible moves of the current solution
-(2) Acceptor 		: Filters out unacceptable moves (hard constraint)
-(3)	Forager			: Gathers accepted moves and picks the next step from them.
+(2)     Acceptor 	: Filters out unacceptable moves (hard constraint)
+(3)	Forager		: Gathers accepted moves and picks the next step from them.
 
 
 Hill Climbing
