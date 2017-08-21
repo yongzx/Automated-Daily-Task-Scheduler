@@ -1,0 +1,16 @@
+Local Search
+============
+Local Search tries a number of moves on the current solution and picks the best accepted move as the step.
+It uses search path instead of search tree.
+(Tries all selected moves, but unless it's the step, it doesn't investigate the solution further.)
+
+Three components are used to decide the next step:
+(1)	Move_Selector 	: Select possible moves of the current solution
+(2) Acceptor 		: Filters out unacceptable moves (hard constraint)
+(3)	Forager			: Gathers accepted moves and picks the next step from them.
+
+
+Hill Climbing
+------------- 
+- greedy local search algorithm
+- can become stuck in a local optimum
