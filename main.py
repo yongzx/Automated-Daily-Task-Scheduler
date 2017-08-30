@@ -25,10 +25,11 @@ class TernaryTree:
 		self.left = None
 		self.mid = None
 		self.right = None
+		self.cont = None 	 #add-on for task of a priority with multiple subtasks of different priority
 
 class ListNode:
 
-	def __init__(self, val, nxt = None, prev = None):
+	def __init__(self, val = {}, nxt = None, prev = None):
 		self.val = val
 		self.next = nxt
 		self.prev = prev
@@ -38,9 +39,10 @@ class Tasks:
 	class Task:
 
 		def __init__(self, name, priority = None, duration = None):
+			HR_TO_MIN = 60
 			self.name = name
 			self.priority = priority
-			self.duration = duration*60
+			self.duration = duration*HR_TO_MIN
 
 		def __lt__(self, other):
 			return self.priority > other.priority if self.priority != other.priority\
@@ -55,18 +57,19 @@ class Tasks:
 		
 		self.daily_tasks = []
 
-	def get_task_from_user(self, name, priority, duration, deadline):
+	def get_task_from_user(self, name, priority, duration_in_hr, deadline):
+		### improve by using input from user
 
 		if int(priority) == 1:
-			self.P1_last.next = ListNode([name, int(duration), int(deadline)])
+			self.P1_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
 			self.P1_last.next.prev = self.P1_last
 			self.P1_last = self.P1_last.next
 		elif int(priority) == 2:
-			self.P2_last.next = ListNode([name, int(duration), int(deadline)])
+			self.P2_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
 			self.P2_last.next.prev = self.P2_last
 			self.P2_last = self.P2_last.next
 		elif int(priority) == 3:
-			self.P3_last.next = ListNode([name, int(duration), int(deadline)])
+			self.P3_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
 			self.P3_last.next.prev = self.P3_last
 			self.P3_last = self.P3_last.next
 
@@ -74,53 +77,57 @@ class Tasks:
 		# the duration of the daily task of priority 3 
 		# has the minimum hour of 1 hour to maximum duration given
 		# Reason: tasks with closer deadline should have a longer duration in daily schedule
-		hours = 24
+		
+		available_hrs = 24
 		P3 = self.all_tasks.right.next
-		while P3 and hours:
-			task_duration = P3.val[1] / P3.val[2] if (P3.val[1] / P3.val[2]) > 1 else 1
-			if hours > task_duration:
-				P3.val[1] -= task_duration
-				hours -= task_duration
+		while P3 and available_hrs:
+			task_duration = P3.val['duration'] / P3.val['deadline'] if P3.val['duration'] / P3.val['deadline'] > 1 else 1
+			if available_hrs > task_duration:
+				P3.val['count_down'] -= task_duration
+				available_hrs -= task_duration
 			else:
-				P3.val[1] -= hours
-				hours = 0
-			if P3.val[1] == 0:
+				task_duration = available_hrs
+				P3.val['count_down'] -= available_hrs
+				available_hrs = 0
+			if P3.val['count_down'] == 0:
 				if P3.next:
 					P3.next.prev = P3.prev
 				P3.prev.next = P3.next
-			heapq.heappush(self.daily_tasks, self.Task(P3.val[0], 3, task_duration))
+			heapq.heappush(self.daily_tasks, self.Task(P3.val['name'], 3, task_duration))
 			P3 = P3.next
 
 		P2 = self.all_tasks.mid.next
-		while P2 and hours:
-			task_duration = P2.val[1] / P2.val[2] if (P2.val[1] / P2.val[2]) > 1 else 1
-			if hours > task_duration:
-				P2.val[1] -= task_duration
-				hours -= task_duration
+		while P2 and available_hrs:
+			task_duration = P2.val['duration'] / P2.val['deadline'] if P2.val['duration'] / P2.val['deadline'] > 1 else 1
+			if available_hrs > task_duration:
+				P2.val['count_down'] -= task_duration
+				available_hrs -= task_duration
 			else:
-				P2.val[1] -= hours
-				hours = 0
-			if P2.val[1] == 0:
+				task_duration = available_hrs
+				P2.val['count_down'] -= available_hrs
+				available_hrs = 0
+			if P2.val['count_down'] == 0:
 				if P2.next:
 					P2.next.prev = P2.prev
 				P2.prev.next = P2.next
-			heapq.heappush(self.daily_tasks, self.Task(P2.val[0], 2, task_duration))
+			heapq.heappush(self.daily_tasks, self.Task(P2.val['name'], 2, task_duration))
 			P2 = P2.next
 
 		P1 = self.all_tasks.left.next
-		while P1 and hours:
-			task_duration = P1.val[1] / P1.val[2] if (P1.val[1] / P1.val[2]) > 1 else 1
-			if hours > task_duration:
-				P1.val[1] -= task_duration
-				hours -= task_duration
+		while P1 and available_hrs:
+			task_duration = P1.val['duration'] / P1.val['deadline'] if P1.val['duration'] / P1.val['deadline'] > 1 else 1
+			if available_hrs > task_duration:
+				P1.val['count_down'] -= task_duration
+				available_hrs -= task_duration
 			else:
-				P1.val[1] -= hours
-				hours = 0
-			if P1.val[1] == 0:
+				task_duration = available_hrs
+				P1.val['count_down'] -= available_hrs
+				available_hrs = 0
+			if P1.val['count_down'] == 0:
 				if P1.next:
 					P1.next.prev = P1.prev
 				P1.prev.next = P1.next
-			heapq.heappush(self.daily_tasks, self.Task(P1.val[0], 1, task_duration))
+			heapq.heappush(self.daily_tasks, self.Task(P1.val['name'], 1, task_duration))
 			P1 = P1.next
 
 		return self.daily_tasks
@@ -174,7 +181,7 @@ class Time:
 
 	def __sub__(self, other):
 		
-		if type(other) is Time:
+		if isinstance(other, Time):
 		#return duration in minutes
 			if self.min >= other.min:
 				minute = self.min - other.min
@@ -187,7 +194,9 @@ class Time:
 
 		else:
 		#return a time
+			print(type(other))
 			total = self.hr*60 + self.min
+			print(total)
 			total -= int(other)
 			new_min = str(total%60)
 			if len(new_min) < 2:
@@ -295,10 +304,10 @@ def generate(tasks, slots, occupied_slots):
 S = Schedule()
 S.initialize_slots()
 task = Tasks()
-task.get_task_from_user("Essay", priority = 3, duration = 9, deadline = 6)
-task.get_task_from_user("Event", priority = 3, duration = 8, deadline = 4)
-task.get_task_from_user("Assigned Reading", priority = 3, duration = 10, deadline = 5)
-task.get_task_from_user("Reading", priority = 2, duration = 10, deadline = 20)
+task.get_task_from_user("Essay", priority = 3, duration_in_hr = 9, deadline = 6)
+task.get_task_from_user("Event", priority = 3, duration_in_hr = 8, deadline = 4)
+task.get_task_from_user("Assigned Reading", priority = 3, duration_in_hr = 10, deadline = 5)
+task.get_task_from_user("Reading", priority = 2, duration_in_hr = 10, deadline = 20)
 
 ready_tasks = task.get_tasks_for_today()
 print(generate(ready_tasks, S.available_slots, S.occupied_slots))
