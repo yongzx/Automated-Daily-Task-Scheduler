@@ -10,8 +10,12 @@ class TernaryTree:
 class Time:
 	
 	def __init__(self, time):
+		self.time = time
 		self.hr = int(time[:2])
 		self.min = int(time[2:])
+
+	def __repr__(self):
+		return self.time
 
 	def __sub__(self, other):
 		
@@ -27,15 +31,14 @@ class Time:
 			return hour*60+minute
 
 		else:
-		#return a time
-			print(type(other))
+		# for now, assume other is duration in minutes.
+		# return a time
 			total = self.hr*60 + self.min
-			print(total)
 			total -= int(other)
+			
 			new_min = str(total%60)
 			if len(new_min) < 2:
 				new_min = "0" + new_min
-			
 			new_hr = str(total//60)
 			if len(new_hr) < 2:
 				new_hr = "0" + new_hr
@@ -43,14 +46,18 @@ class Time:
 			return new_hr + new_min
 
 	def __add__(self, other):
+	# for now, assume other is duration in minutes.
+	# return a time
 		total = self.hr*60 + self.min
 		total += int(other)
+
 		new_min = str(total%60)
 		if len(new_min) < 2:
 			new_min = "0" + new_min
 		new_hr = str(total//60)
 		if len(new_hr) < 2:
 			new_hr = "0" + new_hr
+		
 		return new_hr + new_min
 
 	def __lt__(self, other):
@@ -65,20 +72,21 @@ class Slots(TernaryTree):
 			self.name = name
 			self.energy_level = energy_level
 
+		def __str__(self):
+			return "{}-{}".format(self.start_t.time, self.end_t.time)
+
 	class ListNode:
-		def __init__(self, data, nxt = None, prev = None):
-			self.data = data
+		def __init__(self, slot, nxt = None, prev = None):
+			self.slot = slot
 			self.next = nxt
 			self.prev = prev
 	
 	def __init__(self):
 		TernaryTree.__init__(self)
-		self.occupied_slots = []
 		self.left, self.mid, self.right = self.ListNode("E1"), self.ListNode("E2"), self.ListNode("E3")
 
 	def initialize_slots(self, fixed_intervals):
 		# improve by taking input instead of pre-setting the slots 
-		self.occupied_slots.extend(self.fixed_slots(fixed_intervals))
 		
 		E1_tracker, E2_tracker, E3_tracker = self.left, self.mid, self.right
 											
@@ -99,7 +107,6 @@ class Slots(TernaryTree):
 		for list_vary_E_level in [self.left, self.mid, self.right]:
 			head = self.shuffle(list_vary_E_level.next)
 			list_vary_E_level.next = head
-			
 
 	def fixed_slots(self, fixed_intervals):
 		result = []
@@ -162,17 +169,17 @@ class Slots(TernaryTree):
 	def get_slot(self):
 		start = self.right.next
 		while start:
-			yield start.data
+			yield start.slot
 			start = start.next
 
 		start = self.mid.next
 		while start:
-			yield start.data
+			yield start.slot
 			start = start.next
 
 		start = self.left.next
 		while start:
-			yield start.data
+			yield start.slot
 			start = start.next
 
 """
@@ -184,12 +191,12 @@ tmp_mid = S.mid
 tmp_right= S.right
 for tmp in (tmp_left, tmp_mid, tmp_right):
 	while tmp:
-		print(tmp.data.start.hr if isinstance(tmp.data, Slots.Slot) else tmp.data)
+		print(tmp.slot.start.hr if isinstance(tmp.slot, Slots.Slot) else tmp.slot)
 		tmp = tmp.next
 	print("-----------------")
 
 for s in S.get_slot():
-	print(s.data.energy_level, s.data.start_t.hr, s.data.end_t.hr)
+	print(s.slot.energy_level, s.slot.start_t.hr, s.slot.end_t.hr)
 """
 
 from bintrees import RBTree
@@ -226,43 +233,62 @@ class Tasks(TernaryTree):
 		for task in iterator:
 			yield task
 
-	def update_task(self, task_storage =[]):
+	def update_task(self, task_storage):
 		for task in task_storage:
 			deadline = task[0][0]
 			name = task[0][1]
 
-			if (deadline, name) in self.right:
+			if task[0] in self.right:
 				self.right.pop((deadline,name))
-				if deadline-1 > 0:
-					self.right[(deadline-1, name)] = task[1] - task[1]/deadline
+				if deadline > 1:
+					self.right[(deadline, name)] = task[1] - task[1]/deadline
 
-			elif (deadline, name) in self.mid:
+			elif task[0] in self.mid:
 				self.mid.pop((deadline, name))
-				if deadline-1 > 0:
-					self.mid[(deadline-1, name)] = task[1] - task[1]/deadline 
+				if deadline > 1:
+					self.mid[(deadline, name)] = task[1] - task[1]/deadline 
 
 			else:
 				self.left.pop((deadline, name))
-				if deadline-1 > 0:
-					self.left[(deadline-1, name)] = task[1] - task[1]/deadline 
+				if deadline > 1:
+					self.left[(deadline, name)] = task[1] - task[1]/deadline 
+
+		for task in self.right:
+			deadline = task[0]
+			name = task[1]
+			duration = self.right[task]
+
+			self.right.pop((deadline, name))
+			if deadline - 1 > 0:
+				self.right[(deadline - 1, name)] = duration
+
+		for task in self.mid:
+			deadline = task[0]
+			name = task[1]
+			duration = self.mid[task]
+
+			self.mid.pop((deadline, name))
+			if deadline - 1 > 0:
+				self.mid[(deadline - 1, name)] = duration
+		
+		for task in self.left:
+			deadline = task[0]
+			name = task[1]
+			duration = self.left[task]
+
+			self.left.pop((deadline, name))
+			if deadline - 1 > 0:
+				self.left[(deadline - 1, name)] = duration
 
 	def update_unfinished_task(self, task, duration):
-		deadline = task[0][0]
-		name = task[0][1]
-		if (deadline, name) in self.right:
-			self.right.pop((deadline,name))
-			if deadline - 1 > 0:
-				self.right[(deadline-1, name)] = task[1] - duration
+		if (task[0]) in self.right:
+			self.right[task[0]] -= duration
 
-		elif (deadline, name) in self.mid:
-			self.mid.pop((deadline,name))
-			if deadline - 1 > 0:
-				self.mid[(deadline-1, name)] = task[1] - duration
+		elif (task[0]) in self.mid:
+			self.mid[task[0]] -= duration
 
-		elif (deadline, name) in self.left:
-			self.left.pop((deadline,name))
-			if deadline - 1 > 0:
-				self.left[(deadline-1, name)] = task[1] - duration
+		elif (task[0]) in self.left:
+			self.left[task[0]] -= duration
 
 """
 T = Tasks()
@@ -277,43 +303,63 @@ class Schedule:
 	def __init__(self):
 		self.schedule = []
 
-	def create_schedule(self):
+	def create_schedule(self, fixed_intervals = []):
 		S = Slots()
-		S.initialize_slots()
+		S.initialize_slots(fixed_intervals)
 
 		T = Tasks()
-		T.get_task_from_user("Essay", priority = 3, duration_in_hr = 3.5, deadline = 2)
-		T.get_task_from_user("Event", priority = 3, duration_in_hr = 8, deadline = 4)
-		T.get_task_from_user("Assigned Reading", priority = 3, duration_in_hr = 10, deadline = 5)
-		T.get_task_from_user("Reading", priority = 2, duration_in_hr = 10, deadline = 20)
-
-		task_storage = []
+		T.get_task_from_user("Essay", priority = 3, duration_in_min = 3.5*60, deadline = 2)
+		T.get_task_from_user("Event", priority = 3, duration_in_min = 8*60, deadline = 2)
+		T.get_task_from_user("Assigned Reading", priority = 3, duration_in_min = 10*60, deadline = 5)
+		T.get_task_from_user("Reading", priority = 2, duration_in_min = 10*60, deadline = 20)
+		
+		
+		task_storage = set()
 		curr_t, duration = 0, 0
+
 		for s in S.get_slot():
+			print(s)
 			for t in T.get_task():
-				deadline = task[0][0] if not curr_t else curr_t[0][0]
-				name = task[0][1] if not curr_t else curr_t[0][1]
-				duration = task[1]/deadline if not duration else duration
+				if t in task_storage and not curr_t:
+					continue
+
+				deadline = t[0][0] if not curr_t else curr_t[0][0]
+				name = t[0][1] if not curr_t else curr_t[0][1]
+				duration = t[1]/deadline if not duration else duration			
+				print(name, deadline, duration)
 
 				if s.end_t - s.start_t == duration:
-					self.schedule.append((s.start_t, s.end_t, name))
-					task_storage.append(t)
+					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
+					task_storage.add(t)
 					curr_t, duration = 0, 0
 					break
 
 				elif s.end_t - s.start_t > duration:
-					self.schedule.append(s.start_t, s.start_t + duration, name)
-					task_storage.append(t)
+					self.schedule.append(("{}-{}".format(s.start_t, s.start_t + duration), name))
+					task_storage.add(t)
 					curr_t, duration = 0, 0
-					s.start_t += expected_duration/deadline
+					s.start_t = Time(s.start_t + duration/deadline)
 
 				else:
-					self.schedule.append((s.start_t, s.end_t, name))
+					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
 					duration -= (s.end_t - s.start_t)
 					curr_t = t
 					break
 
 		T.update_task(task_storage)
 		if curr_t:
+			print(curr_t)
 			T.update_unfinished_task(curr_t, duration)
+		
+		self.schedule.sort()
 		return self.schedule
+
+S = Schedule()
+print(S.create_schedule())
+
+
+
+
+
+
+
