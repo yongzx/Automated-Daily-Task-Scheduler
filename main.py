@@ -173,208 +173,32 @@ for tmp in (tmp_left, tmp_mid, tmp_right):
 	print("-----------------")
 """
 
-class Tasks:
+from bintrees import RBTree
 
-	class Task:
-
-		def __init__(self, name, priority = None, duration = None):
-			HR_TO_MIN = 60
-			self.name = name
-			self.priority = priority
-			self.duration = duration*HR_TO_MIN
-
-		def __lt__(self, other):
-			return self.priority > other.priority if self.priority != other.priority\
-				else (self.duration > other.duration)
+class Tasks(TernaryTree):
 
 	def __init__(self):
-		self.all_tasks = TernaryTree()
-		self.all_tasks.left, self.all_tasks.mid, self.all_tasks.right = \
-			ListNode("P1"), ListNode("P2"), ListNode("P3")
-		self.P1_last, self.P2_last, self.P3_last = \
-			self.all_tasks.left, self.all_tasks.mid, self.all_tasks.right
-		
-		self.daily_tasks = []
+		TernaryTree.__init__(self)
+		self.left = RBTree()
+		self.mid = RBTree()
+		self.right = RBTree()
+
+	def __str__(self):
+		return "{0} \n{1} \n{2} ".format(self.left.__repr__(), self.mid.__repr__(), self.right.__repr__())
 
 	def get_task_from_user(self, name, priority, duration_in_hr, deadline):
-		### improve by using input from user
-
-		if int(priority) == 1:
-			self.P1_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
-			self.P1_last.next.prev = self.P1_last
-			self.P1_last = self.P1_last.next
-		elif int(priority) == 2:
-			self.P2_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
-			self.P2_last.next.prev = self.P2_last
-			self.P2_last = self.P2_last.next
-		elif int(priority) == 3:
-			self.P3_last.next = ListNode({'name':name, 'duration':int(duration_in_hr), 'deadline':int(deadline), 'count_down':int(duration_in_hr)})
-			self.P3_last.next.prev = self.P3_last
-			self.P3_last = self.P3_last.next
-
-	def get_tasks_for_today(self):
-		# the duration of the daily task of priority 3 
-		# has the minimum hour of 1 hour to maximum duration given
-		# Reason: tasks with closer deadline should have a longer duration in daily schedule
-		
-		available_hrs = 24
-		P3 = self.all_tasks.right.next
-		while P3 and available_hrs:
-			task_duration = P3.val['duration'] / P3.val['deadline'] if P3.val['duration'] / P3.val['deadline'] > 1 else 1
-			print(P3.val['name'], task_duration)
-			if available_hrs > task_duration:
-				P3.val['count_down'] -= task_duration
-				available_hrs -= task_duration
-			else:
-				task_duration = available_hrs
-				P3.val['count_down'] -= available_hrs
-				available_hrs = 0
-			if P3.val['count_down'] == 0:
-				if P3.next:
-					P3.next.prev = P3.prev
-				P3.prev.next = P3.next
-			heapq.heappush(self.daily_tasks, self.Task(P3.val['name'], 3, task_duration))
-			P3 = P3.next
-
-		P2 = self.all_tasks.mid.next
-		while P2 and available_hrs:
-			task_duration = P2.val['duration'] / P2.val['deadline'] if P2.val['duration'] / P2.val['deadline'] > 1 else 1
-			if available_hrs > task_duration:
-				P2.val['count_down'] -= task_duration
-				available_hrs -= task_duration
-			else:
-				task_duration = available_hrs
-				P2.val['count_down'] -= available_hrs
-				available_hrs = 0
-			if P2.val['count_down'] == 0:
-				if P2.next:
-					P2.next.prev = P2.prev
-				P2.prev.next = P2.next
-			heapq.heappush(self.daily_tasks, self.Task(P2.val['name'], 2, task_duration))
-			P2 = P2.next
-
-		P1 = self.all_tasks.left.next
-		while P1 and available_hrs:
-			task_duration = P1.val['duration'] / P1.val['deadline'] if P1.val['duration'] / P1.val['deadline'] > 1 else 1
-			if available_hrs > task_duration:
-				P1.val['count_down'] -= task_duration
-				available_hrs -= task_duration
-			else:
-				task_duration = available_hrs
-				P1.val['count_down'] -= available_hrs
-				available_hrs = 0
-			if P1.val['count_down'] == 0:
-				if P1.next:
-					P1.next.prev = P1.prev
-				P1.prev.next = P1.next
-			heapq.heappush(self.daily_tasks, self.Task(P1.val['name'], 1, task_duration))
-			P1 = P1.next
-
-		return self.daily_tasks
+		if priority == 3:
+			self.right[deadline] = [name, duration_in_hr]
+		elif priority == 2:
+			self.mid[deadline] = [name, duration_in_hr]
+		elif priority == 1:
+			self.left[deadline] = [name, duration_in_hr]
 
 
+T = Tasks()
+T.get_task_from_user("Essay", priority = 3, duration_in_hr = 3.5, deadline = 2)
+T.get_task_from_user("Event", priority = 3, duration_in_hr = 8, deadline = 4)
+T.get_task_from_user("Assigned Reading", priority = 3, duration_in_hr = 10, deadline = 5)
+T.get_task_from_user("Reading", priority = 2, duration_in_hr = 10, deadline = 20)
 
-			
-def generate(tasks, slots, occupied_slots):
-	current = heapq.heappop(tasks) if tasks else None
-	
-	slot_node = slots.right.next
-	while slot_node and current:
-		
-		if slot_node.val.end - slot_node.val.start == current.duration:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			slot_node = slot_node.next
-			current = heapq.heappop(tasks) if tasks else None
-
-		elif slot_node.val.end - slot_node.val.start > current.duration:
-			new_slot_end = slot_node.val.start + current.duration
-			new_slot = Slot(slot_node.val.start, Time(new_slot_end), current.name)
-			occupied_slots.append(new_slot)
-
-			slot_start = slot_node.val.start + current.duration
-			slot_node.val.start = Time(slot_start)
-			current = heapq.heappop(tasks) if tasks else None
-
-		else:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			current.duration -= slot_node.val.end - slot_node.val.start
-			slot_node = slot_node.next
-
-
-	slot_node = slots.mid.next
-	while slot_node and current:
-
-		if slot_node.val.end - slot_node.val.start == current.duration:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			slot_node = slot_node.next
-			current = heapq.heappop(tasks) if tasks else None
-
-		elif slot_node.val.end - slot_node.val.start > current.duration:
-			new_slot_end = slot_node.val.start + current.duration
-			new_slot = Slot(slot_node.val.start, Time(new_slot_end), current.name)
-			occupied_slots.append(new_slot)
-
-			slot_start = slot_node.val.start + current.duration
-			slot_node.val.start = Time(slot_start)
-			current = heapq.heappop(tasks) if tasks else None
-
-		else:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			current.duration -= slot_node.val.end - slot_node.val.start
-			slot_node = slot_node.next
-	
-	slot_node = slots.left.next
-	while slot_node and current:
-		if slot_node.val.end - slot_node.val.start == current.duration:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			slot_node = slot_node.next
-			current = heapq.heappop(tasks) if tasks else None
-
-		elif slot_node.val.end - slot_node.val.start > current.duration:
-			new_slot_end = slot_node.val.start + current.duration
-			new_slot = Slot(slot_node.val.start, Time(new_slot_end), current.name)
-			occupied_slots.append(new_slot)
-
-			slot_start = slot_node.val.start + current.duration
-			slot_node.val.start = Time(slot_start)
-			current = heapq.heappop(tasks) if tasks else None
-
-		else:
-			slot_node.val.name = current.name
-			occupied_slots.append(slot_node.val)
-			current.duration -= slot_node.val.end - slot_node.val.start
-			slot_node = slot_node.next
-
-	occupied_slots.sort(key = lambda x: x.start)
-	return ["{} - {} : {}".format(slot.start.time, slot.end.time, slot.name) for slot in occupied_slots]
-
-
-S = Schedule()
-S.initialize_slots()
-task = Tasks()
-task.get_task_from_user("Essay", priority = 3, duration_in_hr = 3.5, deadline = 2)
-task.get_task_from_user("Event", priority = 3, duration_in_hr = 8, deadline = 4)
-task.get_task_from_user("Assigned Reading", priority = 3, duration_in_hr = 10, deadline = 5)
-task.get_task_from_user("Reading", priority = 2, duration_in_hr = 10, deadline = 20)
-
-ready_tasks = task.get_tasks_for_today()
-print(generate(ready_tasks, S.available_slots, S.occupied_slots))
-print()
-
-# new day
-S.initialize_slots()
-ready_tasks = task.get_tasks_for_today()
-print(generate(ready_tasks, S.available_slots, S.occupied_slots))
-print()
-
-# new day
-S.initialize_slots()
-ready_tasks = task.get_tasks_for_today()
-print(generate(ready_tasks, S.available_slots, S.occupied_slots))
-print()
-
+print(T)
