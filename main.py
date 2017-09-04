@@ -302,31 +302,36 @@ print(T)
 class Schedule:
 	def __init__(self):
 		self.schedule = []
+		self.T = None
 
-	def create_schedule(self, fixed_intervals = []):
-		S = Slots()
-		S.initialize_slots(fixed_intervals)
-
+	def create_Tasks(self):
 		T = Tasks()
 		T.get_task_from_user("Essay", priority = 3, duration_in_min = 3.5*60, deadline = 2)
 		T.get_task_from_user("Event", priority = 3, duration_in_min = 8*60, deadline = 2)
 		T.get_task_from_user("Assigned Reading", priority = 3, duration_in_min = 10*60, deadline = 5)
 		T.get_task_from_user("Reading", priority = 2, duration_in_min = 10*60, deadline = 20)
-		
-		
+		self.T = T
+
+	def create_schedule(self, first = True, fixed_intervals = []):
+		S = Slots()
+		S.initialize_slots(fixed_intervals)
+
+		if first:
+			self.create_Tasks()
+
 		task_storage = set()
 		curr_t, duration = 0, 0
 
 		for s in S.get_slot():
-			print(s)
-			for t in T.get_task():
+			#print(s)
+			for t in self.T.get_task():
 				if t in task_storage and not curr_t:
 					continue
 
 				deadline = t[0][0] if not curr_t else curr_t[0][0]
 				name = t[0][1] if not curr_t else curr_t[0][1]
 				duration = t[1]/deadline if not duration else duration			
-				print(name, deadline, duration)
+				#print(name, deadline, duration)
 
 				if s.end_t - s.start_t == duration:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
@@ -337,8 +342,8 @@ class Schedule:
 				elif s.end_t - s.start_t > duration:
 					self.schedule.append(("{}-{}".format(s.start_t, s.start_t + duration), name))
 					task_storage.add(t)
+					s.start_t = Time(s.start_t + duration)
 					curr_t, duration = 0, 0
-					s.start_t = Time(s.start_t + duration/deadline)
 
 				else:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
@@ -346,20 +351,16 @@ class Schedule:
 					curr_t = t
 					break
 
-		T.update_task(task_storage)
+		self.T.update_task(task_storage)
 		if curr_t:
-			print(curr_t)
-			T.update_unfinished_task(curr_t, duration)
-		
+			#print(curr_t)
+			self.T.update_unfinished_task(curr_t, duration)
 		self.schedule.sort()
 		return self.schedule
 
 S = Schedule()
 print(S.create_schedule())
-
-
-
-
-
-
-
+#print(S.create_schedule(first = False))
+#print(S.create_schedule(first = False))
+#print(S.create_schedule(first = False))
+#print(S.create_schedule(first = False))
