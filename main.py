@@ -221,37 +221,35 @@ class Tasks(TernaryTree):
 			self.left[(deadline,name)] = duration_in_min
 
 	def get_task(self):
-		iterator = self.right.iter_items(reverse=True)
+		iterator = self.right.iter_items(reverse=False)
 		for task in iterator:
 			yield task
 
-		iterator = self.mid.iter_items(reverse=True)
+		iterator = self.mid.iter_items(reverse=False)
 		for task in iterator:
 			yield task
 
-		iterator = self.left.iter_items(reverse=True)
+		iterator = self.left.iter_items(reverse=False)
 		for task in iterator:
 			yield task
 
 	def update_task(self, task_storage):
 		for task in task_storage:
-			deadline = task[0][0]
-			name = task[0][1]
 
-			if task[0] in self.right:
-				self.right.pop((deadline,name))
-				if deadline > 1:
-					self.right[(deadline, name)] = task[1] - task[1]/deadline
+			if task in self.right:
+				t = self.right.pop(task)
+				if task[0] > 1:
+					self.right[task] = t - t/task[0]
 
-			elif task[0] in self.mid:
-				self.mid.pop((deadline, name))
-				if deadline > 1:
-					self.mid[(deadline, name)] = task[1] - task[1]/deadline 
+			elif task in self.mid:
+				t = self.mid.pop(task)
+				if task[0] > 1:
+					self.mid[task] = t - t/task[0]
 
 			else:
-				self.left.pop((deadline, name))
-				if deadline > 1:
-					self.left[(deadline, name)] = task[1] - task[1]/deadline 
+				t = self.left.pop(task)
+				if t[0][0] > 1:
+					self.left[task] = t - t/task[0]
 
 		for task in self.right:
 			deadline = task[0]
@@ -318,7 +316,8 @@ class Schedule:
 
 		if first:
 			self.create_Tasks()
-
+		
+		print(self.T)
 		task_storage = set()
 		curr_t, duration = 0, 0
 
@@ -328,20 +327,24 @@ class Schedule:
 				if t in task_storage and not curr_t:
 					continue
 
-				deadline = t[0][0] if not curr_t else curr_t[0][0]
-				name = t[0][1] if not curr_t else curr_t[0][1]
-				duration = t[1]/deadline if not duration else duration			
-				#print(name, deadline, duration)
+				deadline = (t[0][0] if not curr_t else curr_t[0][0])
+				name = (t[0][1] if not curr_t else curr_t[0][1])
+				duration = (t[1]/deadline if not duration else duration)	
+
 
 				if s.end_t - s.start_t == duration:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
-					task_storage.add(t)
+					print(deadline, name)
+					if (deadline, name) not in task_storage:
+						task_storage.add((deadline, name))
 					curr_t, duration = 0, 0
 					break
 
 				elif s.end_t - s.start_t > duration:
 					self.schedule.append(("{}-{}".format(s.start_t, s.start_t + duration), name))
-					task_storage.add(t)
+					print(deadline, name)
+					if (deadline, name) not in task_storage:
+						task_storage.add((deadline, name))
 					s.start_t = Time(s.start_t + duration)
 					curr_t, duration = 0, 0
 
@@ -352,8 +355,8 @@ class Schedule:
 					break
 
 		self.T.update_task(task_storage)
+		print(self.T)
 		if curr_t:
-			#print(curr_t)
 			self.T.update_unfinished_task(curr_t, duration)
 		self.schedule.sort()
 		return self.schedule
