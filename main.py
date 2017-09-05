@@ -235,48 +235,38 @@ class Tasks(TernaryTree):
 
 	def update_task(self, task_storage):
 		for task in task_storage:
-
 			if task in self.right:
-				t = self.right.pop(task)
-				if task[0] > 1:
-					self.right[task] = t - t/task[0]
+				t = self.right.pop(task)	#original duration
+				if task[0] > 1 and t - task_storage[task] > 0:	#task[0]: deadline, task_storage[task] : duration used 
+					self.right[task] = t - task_storage[task]
 
 			elif task in self.mid:
 				t = self.mid.pop(task)
-				if task[0] > 1:
-					self.mid[task] = t - t/task[0]
+				if task[0] > 1 and t - task_storage[task] > 0:
+					self.mid[task] = t - task_storage[task]
 
 			else:
 				t = self.left.pop(task)
-				if t[0][0] > 1:
-					self.left[task] = t - t/task[0]
+				if task[0] > 1 and t - task_storage[task] > 0:
+					self.left[task] = t - task_storage[task]
 
-		for task in self.right:
-			deadline = task[0]
-			name = task[1]
-			duration = self.right[task]
+		#print(self.right)
+		def update_task_deadline(T):
+			tmp_storage = {}
 
-			self.right.pop((deadline, name))
-			if deadline - 1 > 0:
-				self.right[(deadline - 1, name)] = duration
-
-		for task in self.mid:
-			deadline = task[0]
-			name = task[1]
-			duration = self.mid[task]
-
-			self.mid.pop((deadline, name))
-			if deadline - 1 > 0:
-				self.mid[(deadline - 1, name)] = duration
-		
-		for task in self.left:
-			deadline = task[0]
-			name = task[1]
-			duration = self.left[task]
-
-			self.left.pop((deadline, name))
-			if deadline - 1 > 0:
-				self.left[(deadline - 1, name)] = duration
+			for task in T:
+				deadline = task[0]
+				name = task[1]
+				duration = T[task]
+				tmp_storage[(deadline-1, name)] = duration
+			
+			T.clear()
+			for task in tmp_storage:
+				T[task] = tmp_storage[task]
+					
+		update_task_deadline(self.right)
+		update_task_deadline(self.mid)
+		update_task_deadline(self.left)
 
 	def update_unfinished_task(self, task, duration):
 		if (task[0]) in self.right:
@@ -317,12 +307,13 @@ class Schedule:
 		if first:
 			self.create_Tasks()
 		
-		print(self.T)
-		task_storage = set()
+		#print(self.T)
+		task_storage = {}
 		curr_t, duration = 0, 0
 
 		for s in S.get_slot():
-			#print(s)
+			print(s)
+			print(task_storage)
 			for t in self.T.get_task():
 				if t in task_storage and not curr_t:
 					continue
@@ -334,23 +325,34 @@ class Schedule:
 
 				if s.end_t - s.start_t == duration:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
-					print(deadline, name)
 					if (deadline, name) not in task_storage:
-						task_storage.add((deadline, name))
+						task_storage[(deadline, name)] = duration
+					else:
+						task_storage[(deadline, name)] += duration
 					curr_t, duration = 0, 0
 					break
 
 				elif s.end_t - s.start_t > duration:
 					self.schedule.append(("{}-{}".format(s.start_t, s.start_t + duration), name))
-					print(deadline, name)
+					
 					if (deadline, name) not in task_storage:
-						task_storage.add((deadline, name))
+						task_storage[(deadline, name)] = duration
+					else:
+						task_storage[(deadline, name)] += duration
+					
 					s.start_t = Time(s.start_t + duration)
+					#print(s.end_t, s.start_t, type(s.end_t), type(s.start_t), s.end_t - s.start_t)
 					curr_t, duration = 0, 0
 
 				else:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
+					#print(duration, end= "-> ")
 					duration -= (s.end_t - s.start_t)
+					#print(duration)
+					if (deadline, name) not in task_storage:
+						task_storage[(deadline, name)] = s.end_t - s.start_t
+					else:
+						task_storage[(deadline, name)] += s.end_t - s.start_t
 					curr_t = t
 					break
 
