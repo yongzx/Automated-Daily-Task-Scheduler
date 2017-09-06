@@ -312,8 +312,7 @@ class Schedule:
 		curr_t, duration = 0, 0
 
 		for s in S.get_slot():
-			print(s)
-			print(task_storage)
+			#print(task_storage)
 			for t in self.T.get_task():
 				if t in task_storage and not curr_t:
 					continue
@@ -322,8 +321,8 @@ class Schedule:
 				name = (t[0][1] if not curr_t else curr_t[0][1])
 				duration = (t[1]/deadline if not duration else duration)	
 
-
-				if s.end_t - s.start_t == duration:
+				slot_length = s.end_t - s.start_t
+				if slot_length == duration:
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
 					if (deadline, name) not in task_storage:
 						task_storage[(deadline, name)] = duration
@@ -332,7 +331,7 @@ class Schedule:
 					curr_t, duration = 0, 0
 					break
 
-				elif s.end_t - s.start_t > duration:
+				elif slot_length > duration:
 					self.schedule.append(("{}-{}".format(s.start_t, s.start_t + duration), name))
 					
 					if (deadline, name) not in task_storage:
@@ -341,23 +340,23 @@ class Schedule:
 						task_storage[(deadline, name)] += duration
 					
 					s.start_t = Time(s.start_t + duration)
-					#print(s.end_t, s.start_t, type(s.end_t), type(s.start_t), s.end_t - s.start_t)
 					curr_t, duration = 0, 0
 
 				else:
+					# don't use s.end_t - s.start_t for now as I couldn't find the bug of
+					# making s.end_t - s.start_t produce incorrect figure
+					# use slot_length instead
 					self.schedule.append(("{}-{}".format(s.start_t.time, s.end_t.time), name))
-					#print(duration, end= "-> ")
-					duration -= (s.end_t - s.start_t)
-					#print(duration)
+					duration -= slot_length
 					if (deadline, name) not in task_storage:
-						task_storage[(deadline, name)] = s.end_t - s.start_t
+						task_storage[(deadline, name)] = slot_length
 					else:
-						task_storage[(deadline, name)] += s.end_t - s.start_t
+						task_storage[(deadline, name)] += slot_length
 					curr_t = t
 					break
 
 		self.T.update_task(task_storage)
-		print(self.T)
+		#print(self.T)
 		if curr_t:
 			self.T.update_unfinished_task(curr_t, duration)
 		self.schedule.sort()
@@ -365,7 +364,7 @@ class Schedule:
 
 S = Schedule()
 print(S.create_schedule())
-#print(S.create_schedule(first = False))
+print(S.create_schedule(first = False))
 #print(S.create_schedule(first = False))
 #print(S.create_schedule(first = False))
 #print(S.create_schedule(first = False))
