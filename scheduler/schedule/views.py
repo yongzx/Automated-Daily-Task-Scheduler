@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .models import Task
-# Create your views here.
+from django.views import generic
+
 
 def index(request):
     """
@@ -13,5 +14,10 @@ def index(request):
     return render(
         request,
         'index.html',
-        context={'num_tasks':num_tasks},
+        context={'num_tasks': num_tasks},
     )
+
+
+class TaskListView(generic.ListView):
+    model = Task
+    template_name = 'tasks/task_list.html'
