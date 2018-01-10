@@ -13,7 +13,7 @@ class Task(models.Model):
     estimated_total_duration = models.IntegerField(blank=True, null=True,
                                                    help_text="How much time (in hours) would you estimate for the task to be completed?")
     deadline = models.DateField(blank=True, null=True)
-    priority = models.IntegerField(max_length=1, choices = PRIORITY_STATUS)
+    priority = models.IntegerField(choices = PRIORITY_STATUS)
 
     def __str__(self):
         return self.task_name
