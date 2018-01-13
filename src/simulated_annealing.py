@@ -66,9 +66,8 @@ def anneal(slots, tasks, variety_preference, deadline_preference, continuous_pre
                 tmp = []
 
         r = random()
-        if r > 0.5:
+        if r > 0.5 and intervals_to_choose_from:
             # include a task outside the schedule
-            print(type(tasks))
             r_task = tasks[randrange(0, len(tasks))]
             intervals_to_change = randrange(len(intervals_to_choose_from))
             r_start = choice(intervals_to_choose_from[intervals_to_change])
@@ -77,7 +76,7 @@ def anneal(slots, tasks, variety_preference, deadline_preference, continuous_pre
             for i in range(r_start, r_end+1):
                 s[i].act = r_task
 
-        else:
+        elif intervals_to_choose_from:
             # swap the task inside the schedule
             intervals_to_change1 = randrange(len(intervals_to_choose_from))
             intervals_to_change2 = randrange(len(intervals_to_choose_from))

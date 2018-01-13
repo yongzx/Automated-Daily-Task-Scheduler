@@ -32,7 +32,7 @@ def hill_climbing(slots, tasks):
         task_time -= slot.DURATION
         task_input.done(slot.DURATION)
 
-        if task_input.isDone():
+        if task_input.isDone() and task_input in tasks:
             tasks.remove(task_input)
             tmp_tasks.remove(task_input)
 

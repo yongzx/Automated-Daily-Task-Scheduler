@@ -25,5 +25,6 @@ tasks.add(Task("Writing", priority=3, end_date="2018-01-30", estimated_time=8*60
 
 # Generate the Schedule and check with Machine Learning algorithm
 hill_climbing(schedule, tasks)
-anneal(schedule, list(tasks), 0.1, 0.1, 0.1)
+print(schedule)
+schedule = anneal(schedule, list(tasks), 0.1, 0.1, 0.1)
 print(schedule)
