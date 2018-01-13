@@ -84,7 +84,11 @@ def anneal(slots, tasks, variety_preference, deadline_preference, continuous_pre
             r_end1 = choice(intervals_to_choose_from[intervals_to_change1])
             r_start2 = choice(intervals_to_choose_from[intervals_to_change2])
             r_end2 = choice(intervals_to_choose_from[intervals_to_change2])
-            s[r_start1:r_end1+1], s[r_start2:r_end2+1] = s[r_start2:r_end2+1], s[r_start1:r_end1+1]
+            tmp = s[r_start2]
+            for i in range(r_start2, r_end2+1):
+                s[i].act = s[r_start1].act
+            for i in range(r_start1, r_end1+1):
+                s[i].act = tmp.act
 
         return s
 
