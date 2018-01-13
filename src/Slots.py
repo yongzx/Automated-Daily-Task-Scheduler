@@ -31,7 +31,6 @@ class Slots:
         self._slots = [Slot(dt) for dt in datetime_range(start, end,
                                                          timedelta(minutes=10))]
 
-
     def get_slots(self):
         return [(s.time, s.energy, s.act) for s in self._slots]
 
@@ -55,11 +54,17 @@ class Slots:
         for i in range(start, end):
             self._slots[i].act = act
 
-    def __repr__(self):
-        return self.get_slots()
-
     def __str__(self):
-        return str(self.get_slots())
+        s = self.get_slots()
+        arr = []
+        for slot in s:
+            arr.append(
+                slot[0].strftime("%H:%M") + " - {}".format(slot[2] if ( type(slot[2]) == str or slot[2] == None ) else slot[2].get_name()))
+        schedule = ""
+        for act in arr:
+            schedule += act
+            schedule += "\n"
+        return schedule
 
     def __iter__(self):
         return iter([slot for slot in self._slots])
@@ -72,6 +77,3 @@ class Slots:
 
     def __getitem__(self, idx):
         return self._slots[idx]
-
-
-
