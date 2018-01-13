@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Aug 22 20:37:19 2017
-
-@author: wangxiujiang
-"""
-
 from sklearn.neural_network import MLPClassifier
 
 import random
