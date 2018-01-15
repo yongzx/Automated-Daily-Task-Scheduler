@@ -2,6 +2,7 @@ from Task import Task
 from Slots import Slots
 from hill_climbing import hill_climbing
 from simulated_annealing import anneal
+from random import random
 
 # Initialize or update the slots' energy
 schedule = Slots()
@@ -23,7 +24,12 @@ tasks.add(Task("Essay", priority=3, end_date="2018-01-14", estimated_time=8*60, 
 tasks.add(Task("Programming", priority=3, end_date="2018-01-19", estimated_time=4*60, category="Assignment"))
 tasks.add(Task("Writing", priority=3, end_date="2018-01-30", estimated_time=8*60, category="Assignment"))
 
-# Generate the Schedule and check with Machine Learning algorithm
+
+var_score, deadline_score, cont_score = random(), random(), random()
+
+# Generate the Schedule
+# Use machine learning algorithm to check the variability, deadline and continuity preference
+
 hill_climbing(schedule, tasks)
-schedule = anneal(schedule, list(tasks), 0.1, 0.1, 0.9)
+schedule = anneal(schedule, list(tasks), var_score, deadline_score, cont_score)
 print(schedule)
