@@ -59,11 +59,16 @@ class Slots:
         arr = []
         for slot in s:
             arr.append(
-                slot[0].strftime("%H:%M") + " - {}".format(slot[2] if ( type(slot[2]) == str or slot[2] == None ) else slot[2].get_name()))
+                slot[0].strftime("%H:%M") + " - {}".format(slot[2] if (type(slot[2]) == str or slot[2] == None) else slot[2].get_name()))
         schedule = ""
-        for act in arr:
-            schedule += act
-            schedule += "\n"
+        start = arr[0]
+        for i in range(1, len(arr)):
+            if arr[i][9:] != start[9:]:
+                slot = start[:5] + " - " + arr[i][:5] + ": " + start[8:]
+                start = arr[i]
+                schedule += slot
+                schedule += "\n"
+        schedule += start[:5] + " - 23:59" + ": " + start[8:]
         return schedule
 
     def __iter__(self):

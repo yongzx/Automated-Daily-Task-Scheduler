@@ -5,7 +5,6 @@ def hill_climbing(slots, tasks):
     # Use Hill Climbing local search algorithm to generate the schedule by modifying the list slots.
 
     tmp_tasks = deepcopy(tasks)
-
     def cost(slot, task):
         # aim to maximize the cost for optimization
         return slot.energy * task.get_priority() / (task.get_deadline() - datetime.now().date()).days
@@ -40,4 +39,3 @@ def hill_climbing(slots, tasks):
             tmp_tasks.remove(task_input)
             task_input = None
             task_time = None
-
