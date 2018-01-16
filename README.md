@@ -1,8 +1,8 @@
-# Automated-Daily-Task-Scheduler
+# Virtual Assistant - Daily Scheduler
 
 ## Motivation
 Currently, there is no commercial software, including virtual assistant, in the market that helps a user schedule his/her day.
-This Python script is an attempt to the gap of the functions of the virtual assistants.
+This Python script is an attempt to the gap of the functions of the virtual assistants, which is to schedule the day of the user based on his preferences. 
 
 
 ### How to Use It
