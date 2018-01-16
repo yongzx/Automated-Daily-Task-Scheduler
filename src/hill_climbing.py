@@ -8,7 +8,6 @@ def hill_climbing(slots, tasks):
     def cost(slot, task):
         # aim to maximize the cost for optimization
         try:
-            print(slot.energy, task.get_priority())
             return slot.energy * task.get_priority() / (task.get_deadline() - datetime.now().date()).days
         except:
             print(slot.energy, task.get_priority())
