@@ -7,12 +7,16 @@ def hill_climbing(slots, tasks):
     tmp_tasks = deepcopy(tasks)
     def cost(slot, task):
         # aim to maximize the cost for optimization
-        return slot.energy * task.get_priority() / (task.get_deadline() - datetime.now().date()).days
+        try:
+            print(slot.energy, task.get_priority())
+            return slot.energy * task.get_priority() / (task.get_deadline() - datetime.now().date()).days
+        except:
+            print(slot.energy, task.get_priority())
 
     task_input = None
     task_time = None
     for slot in slots:
-        if slot.act:
+        if isinstance(slot.act, str):
             continue
 
         max_cost = 0
